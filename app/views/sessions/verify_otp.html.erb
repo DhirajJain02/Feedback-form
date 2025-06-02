@@ -1,0 +1,105 @@
+<div class="container mt-5 py-5 border rounded text-center" style="max-width: 380px">
+  <h2 class="fw-bold">Enter OTP</h2>
+  <p class="text-muted">to verify your mobile number</p>
+
+  <p class="mt-5">
+    We have sent an OTP to <strong>+91–<%= session[:phone_number] %></strong>
+    <%= link_to 'Edit', login_path, class: 'ms-2 text-primary' %>
+  </p>
+  <div>
+
+    <%= form_with url: '/confirm_otp', method: :post, local: true do |f| %>
+      <div class="d-flex justify-content-center gap-3">
+        <% 6.times do |i| %>
+          <input name="otp_digit[]" maxlength="1" class="form-control text-center otp-input" style="width: 40px"/>
+        <% end %>
+      </div>
+      <!--      <p class="text-muted text-start mt-2 mx-3">Resend OTP in <span id="resend-timer">60</span>sec</p>-->
+      <p class="text-muted text-start mt-2 mx-3">
+        Resend OTP in <span id="resend-timer">10</span> sec
+        <span id="resend-link" class="d-none">
+          | <%= link_to 'Resend OTP', resend_otp_path(phone: session[:phone_number]), method: :post, class: "text-primary" %>
+        </span>
+      </p>
+      <%= hidden_field_tag :otp, "", id: "combined_otp" %>
+
+      <div style="margin-top: 120px;">
+        <%= f.submit "Verify OTP", class: "btn btn-primary w-100" %>
+      </div>
+
+    <% end %>
+  </div>
+
+</div>
+
+<style>
+    .otp-input {
+        border: 1px solid #ccc;
+        border-radius: 8px;
+    }
+</style>
+
+<script>
+    document.addEventListener("turbo:load", () => {
+        const inputs = document.querySelectorAll("input[name='otp_digit[]']");
+        const combined = document.getElementById("combined_otp");
+        const resendTimer = document.getElementById("resend-timer");
+        const resendLink = document.getElementById("resend-link");
+
+        inputs.forEach((input, index) => {
+            input.addEventListener("input", () => {
+                if (input.value.length === 1 && index < inputs.length - 1) {
+                    inputs[index + 1].focus();
+                }
+            });
+
+            input.addEventListener("keydown", (e) => {
+                if (e.key === "Backspace" && input.value === "" && index > 0) {
+                    inputs[index - 1].focus();
+                }
+            });
+        });
+
+        // Countdown timer
+        let time = 10;
+        const countdown = setInterval(() => {
+            time--;
+            resendTimer.innerText = time;
+            if (time <= 0) {
+                clearInterval(countdown);
+                resendLink.classList.remove("d-none");
+            }
+        }, 1000);
+
+        // Combine digits before submit
+        const form = document.querySelector("form");
+        form.addEventListener("submit", (e) => {
+            combined.value = Array.from(inputs).map(i => i.value).join('');
+        });
+    });
+    // const inputs = document.querySelectorAll("input[name='otp_digit[]']");
+    // const combined = document.getElementById("combined_otp");
+    //
+    // inputs.forEach((input, index) => {
+    //     input.addEventListener("input", () => {
+    //         if (input.value.length === 1 && index < inputs.length - 1) {
+    //             inputs[index + 1].focus();
+    //         }
+    //
+    //         input.addEventListener("keydown", (e) => {
+    //             if (e.key === "Backspace" && input.value === "" && index > 0) {
+    //                 inputs[index - 1].focus();
+    //             }
+    //         });
+    //         combined.value = Array.from(inputs).map(i => i.value).join('');
+    //     });
+    //     let time = 60;
+    //     const timerEl = document.getElementById("resend-timer");
+    //     const countdown = setInterval(() => {
+    //         time--;
+    //         timerEl.innerText = time;
+    //         if (time <= 0) clearInterval(countdown);
+    //     }, 1000);
+    // });
+</script>
+

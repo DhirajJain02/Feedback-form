@@ -1,0 +1,2 @@
+module FeedbackDetailsHelper
+end

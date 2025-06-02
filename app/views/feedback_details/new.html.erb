@@ -1,0 +1,80 @@
+<div class="container mt-5 p-5 border rounded" style="max-width: 500px;">
+  <h2 class="fw-bold">Community Feedback Hub</h2>
+  <p class="text-center">Your voice helps us improve our community!</p>
+
+  <%= form_with model: @feedback_detail, local: true, html: { multipart: true, class: "mt-4" } do |form| %>
+
+    <!-- Category -->
+    <div class="mb-3">
+      <%= form.label :category, "Category", class: "form-label fw-bold" %>
+      <%= form.select :category,
+                      ['Infrastructure (e.g. Roads, lighting)', 'Environment (e.g, Waste, greenery)',
+                       'Event Suggestion', 'General Suggestion/ Suggestion', 'Security Concern', 'Other'],
+                      { prompt: "Select Category" },
+                      class: "form-select text-secondary", required: true %>
+    </div>
+
+    <!-- Description -->
+    <div class="mb-3">
+      <%= form.label :description, "Description of issue or Feedback", class: "form-label fw-bold" %>
+      <%= form.text_area :description,
+                         placeholder: "Please describe the issue or your suggestion in detail..",
+                         maxlength: 500, rows: 5, class: "form-control", required: true %>
+      <small class="form-text text-muted">Max 500 Characters</small>
+    </div>
+
+    <!-- Location -->
+    <div class="mb-3">
+      <%= form.label :location_address, "Specific Location (E.g. , Building A, Street Name, Park Area)", class: "form-label fw-bold" %>
+      <%= form.text_area :location_address,
+                         placeholder: "E.g. Near main gate , Block C-201", maxlength: 50,
+                         class: "form-control", required: true %>
+    </div>
+
+    <!-- Image -->
+    <div class="mb-3">
+      <%= form.label :image, "Attach an Image (Optional)", class: "form-label fw-bold" %>
+      <%= form.file_field :image,
+                          accept: "image/jpeg,image/jpg,image/png", class: "form-control" %>
+      <small class="form-text text-muted">JPEG, JPG, PNG, up to 5 MB</small>
+    </div>
+
+    <!-- Urgency -->
+    <div class="mb-3">
+      <%= form.label :urgency, "Urgency", class: "form-label fw-bold" %><br>
+      <% ['Low Priority', 'Medium Priority', 'High Priority', 'Critical (Requires immediate attention)'].each do |level| %>
+        <div class="form-check m-1">
+          <%= form.radio_button :urgency, level, class: "form-check-input", id: level.parameterize, required: true %>
+          <%= form.label level.parameterize, level, class: "form-check-label text-secondary" %>
+        </div>
+      <% end %>
+    </div>
+
+    <!-- Name -->
+    <div class="mb-3">
+      <%= form.label :name, "Your Name*", class: "form-label fw-bold" %>
+      <%= form.text_field :name, placeholder: "Enter Name", class: "form-control", required: true %>
+    </div>
+
+    <!-- Email -->
+    <div class="mb-3">
+      <%= form.label :email, "Email", class: "form-label fw-bold" %>
+      <%= form.email_field :email, placeholder: "Enter Email", class: "form-control", required: true %>
+    </div>
+
+    <% if @feedback_detail.errors.any? %>
+      <div class="alert alert-danger">
+        <h5>There were errors with your submission:</h5>
+        <ul>
+          <% @feedback_detail.errors.full_messages.each do |msg| %>
+            <li><%= msg %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+    <!-- Submit -->
+    <div class="d-grid">
+      <%= form.submit "Submit Feedback", class: "btn btn-primary" %>
+    </div>
+  <% end %>
+</div>

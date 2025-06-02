@@ -1,0 +1,314 @@
+<div class="container mt-5">
+  <h1 class="fw-bold">Admin Dashboard</h1>
+  <p class="text-muted fs-5 mb-4">Community Feedback Overview</p>
+
+  <!-- Top Stats -->
+  <div class="row g-3 mb-4 mt-2">
+    <div class="col-md">
+      <div class="p-3 rounded bg-info bg-opacity-10 shadow-sm" style="color: #2525f8">
+        <div>Total Submissions</div>
+        <h4><%= @total_submissions %></h4>
+      </div>
+    </div>
+    <div class="col-md">
+      <div class="p-3 rounded bg-success bg-opacity-10 text-success shadow-sm">
+        <div>New Today</div>
+        <h4><%= @new_today %></h4>
+      </div>
+    </div>
+    <div class="col-md">
+      <div class="p-3 rounded bg-warning bg-opacity-10 shadow-sm" style="color: #a9361c">
+        <div>Pending Issues</div>
+        <h4><%= @pending_issues %></h4>
+      </div>
+    </div>
+    <div class="col-md">
+      <div class="p-3 rounded shadow-sm" style="background-color: #f3e8ff; color: #6f16d1;">
+        <div>Resolved Issues</div>
+        <h4><%= @resolved_issues %></h4>
+      </div>
+    </div>
+    <div class="col-md">
+      <div class="p-3 rounded bg-danger bg-opacity-10 text-danger shadow-sm">
+        <div>High Priority Pending</div>
+        <h4><%= @high_priority_pending %></h4>
+      </div>
+    </div>
+  </div>
+
+  <!-- Category & Urgency -->
+  <div class="row mb-5">
+    <div class="col-8">
+      <div class="card shadow-sm" style="height: 400px;">
+        <div class="card-header fw-bold">Feedback/Issues by Category</div>
+        <div style="height: calc(100% - 56px);"> <!-- 56px = Bootstrap .card-header height -->
+          <canvas id="categoryChart" class="p-4 w-100 h-100"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card shadow-sm" style="height: 400px;">
+        <div class="card-header fw-bold">Urgency Levels</div>
+        <div style="height: calc(100% - 56px);">
+          <canvas id="urgencyChart" class="px-2 w-100 h-100"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Feedback -->
+  <div class="px-3 py-2 mb-2">
+
+
+    <div class="table-responsive shadow-sm rounded border mb-5">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+        <tr>
+          <div class="d-flex justify-content-between align-items-center mx-4 mt-2">
+            <div class="p-2 d-flex justify-content-between gap-4">
+              <h4 class=" align-content-end">Recent Feedback</h4>
+              <div class="search-box search-input bg-white border rounded-2">
+<!--                  <span>🔍</span>-->
+                <%= image_tag('search.png', class: "like-icon") %>
+                <input type="text" class="form-control" placeholder="Search">
+              </div>
+            </div>
+
+            <%#= form_with url: import_csv_path, method: :post, local: true, html: { multipart: true } do %>
+            <!--        <label for="csvFile" class="form-label fw-bold">Export CSV</label>-->
+            <%#= file_field_tag :file, accept: '.csv', class: "form-control", required: true %>
+            <%# end %>
+            <%#= submit_tag "Import CSV", class: "btn btn-success" %>
+            <%= link_to "Export CSV", export_csv_path(format: :csv), class: "btn btn-outline-primary btn-sm" %>
+          </div>
+        </tr>
+        <tr class="text-center">
+          <th>S.No.</th>
+          <th>Name</th>
+          <th>Category</th>
+          <th>Urgency</th>
+          <th>Location</th>
+          <th>Status</th>
+          <th>Feedback</th>
+          <th>Date</th>
+          <th>Image</th>
+        </tr>
+        </thead>
+        <tbody>
+        <% @recent_feedbacks.each_with_index do |feedback, index| %>
+          <div class="modal fade" id="resolveModal-<%= feedback.id %>" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+              <div class="modal-content" style="border-radius: 15px; background-color: rgba(255, 255, 255, 0.95);">
+                <div class="modal-body text-center p-5">
+                  <h5 class="fw-bold mb-4">Are you sure you want to resolve this ticket?</h5>
+                  <div class="d-flex justify-content-center gap-3">
+                    <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">Cancel</button>
+
+                    <%= button_to "Resolve", resolve_feedback_detail_path(feedback), method: :patch,
+                                  class: "btn btn-success px-4", form: { "data-turbo" => "false" } %>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <tr class="text-center">
+<!--            <td><%#= index + 1 %></td>-->
+            <td>
+              <%= ((@current_page - 1) * DashboardController::PER_PAGE) + (index + 1) %>
+            </td>
+            <td><%= feedback.name %></td>
+            <td><%= feedback.category %></td>
+            <td>
+              <span class="d-flex align-items-center gap-2 border rounded p-2 mx-2">
+                <!-- Small colored dot -->
+                <span class="dot
+                  <%= feedback.urgency == 'Critical (Requires immediate attention)' ? 'bg-danger' :
+                                                     feedback.urgency == 'High Priority' ? 'bg-warning' :
+                                                       feedback.urgency == 'Medium Priority' ? 'bg-info' :
+                                                         'bg-success' %>"></span>
+
+                <%= feedback.urgency.split(" ").first %>
+              </span>
+            </td>
+            <td><%= feedback.location_address %></td>
+            <td>
+              <% if feedback.status == 'pending' %>
+                <button type="button" class="btn btn-sm btn-warning text-dark fw-bold" style="opacity: 0.8;"
+                        data-bs-toggle="modal"
+                        data-bs-target="#resolveModal-<%= feedback.id %>">
+                  <%= feedback.status.capitalize %>
+                </button>
+              <% else %>
+            <span class="btn btn-sm btn-success disabled">
+              <%= feedback.status.capitalize %>
+            </span>
+              <% end %>
+            </td>
+            <td title="<%= feedback.description %>"><%= truncate(feedback.description, length: 20) %></td>
+            <td><%= feedback.created_at.strftime("%d %b %Y") %></td>
+            <!--          <td><%#= feedback.image_url %></td>-->
+            <td style="max-width: 200px; text-align: center">
+              <% if feedback.image.attached? %>
+                <%= image_tag('graphic-style.png') %>
+                <%= link_to feedback.image.filename.to_s, rails_blob_path(feedback.image, disposition: "attachment"), class: "text-decoration-none" %>
+              <% else %>
+                —
+              <% end %>
+            </td>
+          </tr>
+        <% end %>
+        </tbody>
+      </table>
+      <% if @total_pages > 1 %>
+        <nav aria-label="Feedback pagination">
+          <ul class="pagination justify-content-center d-flex justify-content-between m-3">
+
+            <!-- Previous button -->
+            <li class="page-item <%= 'disabled' if @current_page == 1 %>">
+              <% if @current_page > 1 %>
+                <%= link_to 'Previous', url_for(page: @current_page - 1), class: 'page-link', data: { turbo: false } %>
+              <% else %>
+                <span class="page-link">Previous</span>
+              <% end %>
+            </li>
+            <div class="d-flex gap-2">
+
+            <!-- Numeric page links (for simplicity, show all pages 1..@total_pages) -->
+            <% (1..@total_pages).each do |page_num| %>
+              <li class="page-item <%= 'active' if page_num == @current_page %>">
+                <% if page_num == @current_page %>
+                  <span class="page-link"><%= page_num %></span>
+                <% else %>
+                  <%= link_to page_num, url_for(page: page_num), class: 'page-link', data: { turbo: false } %>
+                <% end %>
+              </li>
+            <% end %>
+            </div>
+
+            <!-- Next button -->
+            <li class="page-item <%= 'disabled' if @current_page == @total_pages %>">
+              <% if @current_page < @total_pages %>
+                <%= link_to 'Next', url_for(page: @current_page + 1), class: 'page-link', data: { turbo: false } %>
+              <% else %>
+                <span class="page-link">Next</span>
+              <% end %>
+            </li>
+
+          </ul>
+        </nav>
+      <% end %>
+    </div>
+  </div>
+</div>
+<style>
+    .dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        display: inline-block;
+    }
+    .search-input span {
+        font-size: 1.1rem;
+        color: #9ca3af; /* gray-400 */
+        margin-right: 8px;
+    }
+    .search-input {
+        display: flex;
+        align-items: center;
+        background-color: #fff;
+        border: 1px solid #d1d5db; /* light gray border */
+        border-radius: 6px;
+        padding: 6px 12px;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+
+    .search-input input {
+        border: none;
+        outline: none;
+        box-shadow: none;
+        width: 100%;
+        font-size: 1rem;
+        color: #374151; /* gray-700 */
+    }
+
+</style>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Feedback by Category Bar Chart
+    const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+    const categoryChart = new Chart(categoryCtx, {
+        type: 'bar',
+        data: {
+            labels: <%= raw @category_data.keys.map { |k| k.split.first }.to_json %>,
+            datasets: [{
+                data: <%= raw @category_data.values.to_json %>,
+                backgroundColor: '#4f46e5',
+                barThickness: 15
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    display: false  // Hides the legend
+                }
+            },
+            scales: {
+                y: {beginAtZero: true}
+            }
+        }
+    });
+
+    // Urgency Levels Doughnut Chart
+    const urgencyDataValues = <%= raw @urgency_data.values.to_json %>;
+    const urgencyDataLabels = <%= raw @urgency_data.keys.map { |k| k.split.first }.to_json %>;
+    const urgencyTotal = urgencyDataValues.reduce((a, b) => a + b, 0);
+
+    const urgencyCtx = document.getElementById('urgencyChart').getContext('2d');
+    const urgencyChart = new Chart(urgencyCtx, {
+        type: 'doughnut',
+        data: {
+            labels: urgencyDataLabels,
+            datasets: [{
+                data: urgencyDataValues,
+                backgroundColor: ['#dc2626', '#fa9a2a', '#ede52f', '#22c55e']
+            }]
+        },
+        options: {
+            responsive: true,
+            padding: 10,
+            plugins: {
+                cutout: '75%',
+                legend: {
+                    position: 'right',
+                    labels: {
+                        usePointStyle: true,
+                        pointStyle: 'rectRounded',
+                        boxWidth: 14,
+                        boxHeight: 12,
+                        font: {
+                            size: 18,
+                            weight: 'bold'
+                        },
+                        generateLabels: (chart) => {
+                            const dataset = chart.data.datasets[0];
+                            return chart.data.labels.map((label, i) => {
+                                const value = dataset.data[i];
+                                const percent = urgencyTotal ? ((value / urgencyTotal) * 100).toFixed(1) : 0;
+                                return {
+                                    text: `${percent}% ${label}`,
+                                    fillStyle: dataset.backgroundColor[i],
+                                    strokeStyle: dataset.backgroundColor[i],
+                                    lineWidth: 1,
+                                    index: i
+                                };
+                            });
+                        }
+                    }
+                }
+            }
+        }
+    });
+</script>
+
