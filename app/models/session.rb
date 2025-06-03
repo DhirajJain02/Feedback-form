@@ -1,4 +1,5 @@
 class Session < ApplicationRecord
+  has_many :feedback_details
   # include ActiveModel::Model
   # attr_accessor :phone_number, :otp, :verified
   # validates :phone_number,

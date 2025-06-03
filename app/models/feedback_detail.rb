@@ -1,6 +1,7 @@
 require "csv"
 
 class FeedbackDetail < ApplicationRecord
+  belongs_to :session
   has_one_attached :image
   validates :category, :description, :location_address, :urgency, :name, :email, presence: true
   validates :description, length: { maximum: 500 }

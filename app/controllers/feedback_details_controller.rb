@@ -5,7 +5,8 @@ class FeedbackDetailsController < ApplicationController
   end
 
   def create
-    @feedback_detail = FeedbackDetail.new(feedback_detail_params)
+    # @feedback_detail = FeedbackDetail.new(feedback_detail_params)
+    @feedback_detail = current_user_session.feedback_details.new(feedback_detail_params)
 
     respond_to do |format|
       if @feedback_detail.save

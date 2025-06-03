@@ -14,4 +14,8 @@ class ApplicationController < ActionController::Base
     end
   end
 
+  def current_user_session
+    @current_user_session
+  end
+  helper_method :current_user_session
 end
