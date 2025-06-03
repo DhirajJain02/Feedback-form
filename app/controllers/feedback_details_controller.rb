@@ -1,4 +1,5 @@
 class FeedbackDetailsController < ApplicationController
+  before_action :authenticate_with_token!
   def new
     @feedback_detail = FeedbackDetail.new
   end

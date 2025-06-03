@@ -1,3 +1,5 @@
+include PhoneNumberHelper
+
 class SessionsController < ApplicationController
   def new
     # renders login page
@@ -5,7 +7,14 @@ class SessionsController < ApplicationController
 
   def send_otp
     begin
-      @user_session = UserSession.find_or_initialize_by(phone_number: params[:phone_number])
+      # formatted_number = format_phone_number(params[:phone_number])
+      #
+      # if formatted_number.nil?
+      #   redirect_to login_path, alert: "Invalid phone number. Please use +91XXXXXXXXXX or 10-digit format." and return
+      # end
+      #
+      # @user_session = UserSession.find_or_initialize_by(phone_number: formatted_number)
+      @user_session = Session.find_or_initialize_by(phone_number: params[:phone_number])
       @user_session.otp = rand(100000..999999).to_s
       @user_session.verified = false
       @user_session.save!
@@ -15,38 +24,63 @@ class SessionsController < ApplicationController
 
       puts "DEBUG OTP: #{@user_session.otp}"
 
-      redirect_to verify_otp_path, notice: "OTP sent successfully!"
+      # SendOtpService.new(@user_session.phone_number, @user_session.otp).call
+      redirect_to verify_otp_path, notice: "OTP sent to #{@user_session.phone_number}"
     rescue => e
-      redirect_to login_path, alert: "#{e.message}"
+      redirect_to login_path, alert: "Error: #{e.message}"
     end
-
   end
 
   def verify_otp
     @phone = session[:phone_number]
+    unless @phone
+      redirect_to login_path, alert: "Error: Invalid phone number"
+    end
   end
 
   def confirm_otp
     begin
       entered_otp = params[:otp]
-      user_session = UserSession.find_by(phone_number: session[:phone_number])
+      user_session = Session.find_by(phone_number: session[:phone_number])
 
-      # Raise error if user_session not found
       raise "Phone number not found or session expired. Please login again." if user_session.nil?
 
-      stored_otp = user_session&.otp
-
-      Rails.logger.debug "Entered OTP: #{entered_otp}"
-      Rails.logger.debug "Stored OTP: #{stored_otp}"
-
-      if entered_otp == stored_otp
+      if entered_otp == user_session.otp
         user_session.update(verified: true)
-        redirect_to new_feedback_detail_path
+        user_session.generate_auth_token!
+
+        session[:auth_token] = user_session.auth_token
+        respond_to do |format|
+          format.html do
+            redirect_to new_feedback_detail_path, notice: "Logged in!"
+          end
+          format.json do
+            render json: {
+              message: "OTP verified successfully",
+              auth_token: user_session.auth_token,
+              phone_number: user_session.phone_number
+            }, status: :ok
+          end
+        end
       else
-        redirect_to verify_otp_path, alert: "Invalid OTP. Please try again."
+        respond_to do |format|
+          format.html do
+            redirect_to verify_otp_path, alert: "Invalid OTP. Please try again."
+          end
+          format.json do
+            render json: { error: "Invalid OTP" }, status: :unauthorized
+          end
+        end
       end
     rescue => e
-      redirect_to verify_otp_path, alert: "#{e.message}"
+      respond_to do |format|
+        format.html do
+          redirect_to verify_otp_path, alert: "#{e.message}"
+        end
+        format.json do
+          render json: { error: e.message }, status: :unprocessable_entity
+        end
+      end
     end
   end
 

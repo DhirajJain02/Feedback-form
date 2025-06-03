@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_05_31_192801) do
+ActiveRecord::Schema[8.0].define(version: 2025_06_03_042729) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -57,6 +57,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_05_31_192801) do
     t.boolean "verified"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "auth_token"
+    t.datetime "token_expires_at"
   end
 
   create_table "user_sessions", force: :cascade do |t|
@@ -65,6 +67,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_05_31_192801) do
     t.boolean "verified"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "auth_token"
+    t.datetime "token_expires_at"
   end
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
