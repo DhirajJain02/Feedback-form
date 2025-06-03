@@ -1,6 +1,13 @@
 <div class="container mt-5">
-  <h1 class="fw-bold">Admin Dashboard</h1>
-  <p class="text-muted fs-5 mb-4">Community Feedback Overview</p>
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h1 class="fw-bold">Admin Dashboard</h1>
+      <p class="text-muted fs-5">Community Feedback Overview</p>
+    </div>
+    <div>
+      <%= button_to 'Logout', admin_logout_path, method: :delete, class: "btn btn-outline-danger", data: { turbo: false } %>
+    </div>
+  </div>
 
   <!-- Top Stats -->
   <div class="row g-3 mb-4 mt-2">
@@ -69,7 +76,7 @@
             <div class="p-2 d-flex justify-content-between gap-4">
               <h4 class=" align-content-end">Recent Feedback</h4>
               <div class="search-box search-input bg-white border rounded-2">
-<!--                  <span>🔍</span>-->
+                <!--                  <span>🔍</span>-->
                 <%= image_tag('search.png', class: "like-icon") %>
                 <input type="text" class="form-control" placeholder="Search">
               </div>
@@ -113,7 +120,7 @@
             </div>
           </div>
           <tr class="text-center">
-<!--            <td><%#= index + 1 %></td>-->
+            <!--            <td><%#= index + 1 %></td>-->
             <td>
               <%= ((@current_page - 1) * DashboardController::PER_PAGE) + (index + 1) %>
             </td>
@@ -135,7 +142,7 @@
             <td>
               <% if feedback.status == 'pending' %>
                 <button type="button" class="btn btn-sm btn-warning text-dark fw-bold" style="opacity: 0.8;"
-                        data-bs-toggle="modal"
+                        data-bs-toggle="modal" data-turbo="false"
                         data-bs-target="#resolveModal-<%= feedback.id %>">
                   <%= feedback.status.capitalize %>
                 </button>
@@ -174,16 +181,16 @@
             </li>
             <div class="d-flex gap-2">
 
-            <!-- Numeric page links (for simplicity, show all pages 1..@total_pages) -->
-            <% (1..@total_pages).each do |page_num| %>
-              <li class="page-item <%= 'active' if page_num == @current_page %>">
-                <% if page_num == @current_page %>
-                  <span class="page-link"><%= page_num %></span>
-                <% else %>
-                  <%= link_to page_num, url_for(page: page_num), class: 'page-link', data: { turbo: false } %>
-                <% end %>
-              </li>
-            <% end %>
+              <!-- Numeric page links (for simplicity, show all pages 1..@total_pages) -->
+              <% (1..@total_pages).each do |page_num| %>
+                <li class="page-item <%= 'active' if page_num == @current_page %>">
+                  <% if page_num == @current_page %>
+                    <span class="page-link"><%= page_num %></span>
+                  <% else %>
+                    <%= link_to page_num, url_for(page: page_num), class: 'page-link', data: { turbo: false } %>
+                  <% end %>
+                </li>
+              <% end %>
             </div>
 
             <!-- Next button -->
@@ -208,11 +215,13 @@
         border-radius: 50%;
         display: inline-block;
     }
+
     .search-input span {
         font-size: 1.1rem;
         color: #9ca3af; /* gray-400 */
         margin-right: 8px;
     }
+
     .search-input {
         display: flex;
         align-items: center;
@@ -220,7 +229,7 @@
         border: 1px solid #d1d5db; /* light gray border */
         border-radius: 6px;
         padding: 6px 12px;
-        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
     }
 
     .search-input input {
@@ -235,80 +244,81 @@
 </style>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    // Feedback by Category Bar Chart
-    const categoryCtx = document.getElementById('categoryChart').getContext('2d');
-    const categoryChart = new Chart(categoryCtx, {
-        type: 'bar',
-        data: {
-            labels: <%= raw @category_data.keys.map { |k| k.split.first }.to_json %>,
-            datasets: [{
-                data: <%= raw @category_data.values.to_json %>,
-                backgroundColor: '#4f46e5',
-                barThickness: 15
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: {
-                    display: false  // Hides the legend
+    document.addEventListener("turbo:load", function () {
+        setTimeout(function () {
+            const categoryCanvas = document.getElementById('categoryChart');
+            const urgencyCanvas = document.getElementById('urgencyChart');
+
+            if (!categoryCanvas || !urgencyCanvas) return; // Don't run if DOM not ready
+
+            const categoryCtx = categoryCanvas.getContext('2d');
+            const urgencyCtx = urgencyCanvas.getContext('2d');
+
+            // Bar Chart
+            new Chart(categoryCtx, {
+                type: 'bar',
+                data: {
+                    labels: <%= raw @category_data.keys.map { |k| k.split.first }.to_json %>,
+                    datasets: [{
+                        data: <%= raw @category_data.values.to_json %>,
+                        backgroundColor: '#4f46e5',
+                        barThickness: 15
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true } }
                 }
-            },
-            scales: {
-                y: {beginAtZero: true}
-            }
-        }
-    });
+            });
 
-    // Urgency Levels Doughnut Chart
-    const urgencyDataValues = <%= raw @urgency_data.values.to_json %>;
-    const urgencyDataLabels = <%= raw @urgency_data.keys.map { |k| k.split.first }.to_json %>;
-    const urgencyTotal = urgencyDataValues.reduce((a, b) => a + b, 0);
+            // Doughnut Chart
+            const urgencyDataValues = <%= raw @urgency_data.values.to_json %>;
+            const urgencyDataLabels = <%= raw @urgency_data.keys.map { |k| k.split.first }.to_json %>;
+            const urgencyTotal = urgencyDataValues.reduce((a, b) => a + b, 0);
 
-    const urgencyCtx = document.getElementById('urgencyChart').getContext('2d');
-    const urgencyChart = new Chart(urgencyCtx, {
-        type: 'doughnut',
-        data: {
-            labels: urgencyDataLabels,
-            datasets: [{
-                data: urgencyDataValues,
-                backgroundColor: ['#dc2626', '#fa9a2a', '#ede52f', '#22c55e']
-            }]
-        },
-        options: {
-            responsive: true,
-            padding: 10,
-            plugins: {
-                cutout: '75%',
-                legend: {
-                    position: 'right',
-                    labels: {
-                        usePointStyle: true,
-                        pointStyle: 'rectRounded',
-                        boxWidth: 14,
-                        boxHeight: 12,
-                        font: {
-                            size: 18,
-                            weight: 'bold'
-                        },
-                        generateLabels: (chart) => {
-                            const dataset = chart.data.datasets[0];
-                            return chart.data.labels.map((label, i) => {
-                                const value = dataset.data[i];
-                                const percent = urgencyTotal ? ((value / urgencyTotal) * 100).toFixed(1) : 0;
-                                return {
-                                    text: `${percent}% ${label}`,
-                                    fillStyle: dataset.backgroundColor[i],
-                                    strokeStyle: dataset.backgroundColor[i],
-                                    lineWidth: 1,
-                                    index: i
-                                };
-                            });
+            new Chart(urgencyCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: urgencyDataLabels,
+                    datasets: [{
+                        data: urgencyDataValues,
+                        backgroundColor: ['#dc2626', '#fa9a2a', '#ede52f', '#22c55e']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        cutout: '75%',
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                usePointStyle: true,
+                                pointStyle: 'rectRounded',
+                                boxWidth: 14,
+                                boxHeight: 12,
+                                font: { size: 18, weight: 'bold' },
+                                generateLabels: (chart) => {
+                                    const dataset = chart.data.datasets[0];
+                                    return chart.data.labels.map((label, i) => {
+                                        const value = dataset.data[i];
+                                        const percent = urgencyTotal ? ((value / urgencyTotal) * 100).toFixed(1) : 0;
+                                        return {
+                                            text: `${percent}% ${label}`,
+                                            fillStyle: dataset.backgroundColor[i],
+                                            strokeStyle: dataset.backgroundColor[i],
+                                            lineWidth: 1,
+                                            index: i
+                                        };
+                                    });
+                                }
+                            }
                         }
                     }
                 }
-            }
-        }
+            });
+        }, 100); // Short delay allows DOM to fully render
     });
 </script>
+
 

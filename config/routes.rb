@@ -1,4 +1,6 @@
 Rails.application.routes.draw do
+  get "admins/new"
+  get "admins/create"
   get "dashboard/index"
   get "sessions/new"
   get "sessions/send_otp"
@@ -20,24 +22,32 @@ Rails.application.routes.draw do
   # Defines the root path route ("/")
   # root "posts#index"
   root "sessions#new"
-  resources :feedback_details, only: [:new, :create]
+
+  # Sessions routes
   get  '/login', to: 'sessions#new'
   post '/send_otp', to: 'sessions#send_otp'
   get  '/verify_otp', to: 'sessions#verify_otp'
   post '/confirm_otp', to: 'sessions#confirm_otp'
   get '/resend_otp', to: 'sessions#resend_otp'
-  get "dashboard", to: "dashboard#index"
+
+  # Dashboard routes
+  get "admin/dashboard", to: "dashboard#index"
   get "export_csv", to: "dashboard#export_csv"
+
+  # Feedback routes
+  resources :feedback_details, only: [:new, :create]
   post '/import_csv', to: 'feedback_details#import_csv'
   get 'thank_you', to: 'feedback_details#thank_you', as: :thank_you
   patch '/feedback_details/:id/resolve', to: 'feedback_details#resolve', as: 'resolve_feedback_detail'
 
+  # Admin login routes
+  get 'admin/login', to: 'admins#login'
+  post 'admin/login', to: 'admins#login_create'
+  delete 'admin/logout', to: 'admins#logout'
 
+  # Admin Sign up routes
+  get 'admin/signup', to: 'admins#new'
+  post 'admin/signup', to: 'admins#create'
 
-  # resource :session, only: [:new] do
-  #   post :send_otp
-  #   get :verify_otp
-  #   post :confirm_otp
-  # end
 
 end

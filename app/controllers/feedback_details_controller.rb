@@ -30,7 +30,7 @@ class FeedbackDetailsController < ApplicationController
   def resolve
     feedback = FeedbackDetail.find(params[:id])
     feedback.update(status: 'resolved')
-    redirect_to dashboard_path, notice: "Ticket marked as resolved."
+    redirect_to dashboard_index_path, notice: "Ticket marked as resolved."
   end
 
   def import_csv

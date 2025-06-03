@@ -1,0 +1,24 @@
+<div class="container mt-5 py-5 border rounded" style="max-width: 400px">
+  <h2 class="text-center fw-bold">Admin Login</h2>
+  <p class="text-center mb-4">Please enter your credentials to access the admin panel</p>
+
+  <%# if flash[:alert] %>
+<!--    <div class="alert alert-danger text-center">-->
+      <%#= flash[:alert] %>
+<!--    </div>-->
+  <%# end %>
+
+  <%= form_with url: '/admin/login', method: :post, html: { class: "mt-4" } do %>
+    <div class="mb-3">
+      <%= label_tag :email, "Email", class: "form-label" %>
+      <%= email_field_tag :email, nil, required: true, placeholder: "Enter email", class: "form-control" %>
+    </div>
+
+    <div class="mb-4">
+      <%= label_tag :password, "Password", class: "form-label" %>
+      <%= password_field_tag :password, nil, required: true, placeholder: "Enter password", class: "form-control" %>
+    </div>
+
+    <%= submit_tag "Login", class: "btn btn-primary w-100" %>
+  <% end %>
+</div>

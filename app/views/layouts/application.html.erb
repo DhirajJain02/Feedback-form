@@ -30,7 +30,7 @@
   <body>
 
   <% flash.each do |key, message| %>
-    <div class="alert alert-<%= bootstrap_class_for_flash(key) %> alert-dismissible fade show" role="alert">
+    <div class="alert alert-<%= bootstrap_class_for_flash(key) %> alert-dismissible fade show" role="alert" style="position: fixed; top: 20px; right: 20px; z-index: 9999; width: 350px;">
       <%= message %>
       <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
