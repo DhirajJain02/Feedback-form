@@ -27,12 +27,6 @@ class FeedbackDetailsController < ApplicationController
     end
   end
 
-  def resolve
-    feedback = FeedbackDetail.find(params[:id])
-    feedback.update(status: 'resolved')
-    redirect_to dashboard_index_path, notice: "Ticket marked as resolved."
-  end
-
   def import_csv
     if params[:file].blank?
       redirect_to feedback_details_path, alert: "Please upload a CSV file."

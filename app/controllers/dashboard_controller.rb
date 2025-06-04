@@ -1,5 +1,6 @@
 class DashboardController < ApplicationController
   PER_PAGE = 10
+  before_action :authenticate_admin!
 
   def index
 
@@ -45,6 +46,19 @@ class DashboardController < ApplicationController
     @feedbacks = FeedbackDetail.all
     respond_to do |format|
       format.csv { send_data @feedbacks.to_csv, filename: "feedbacks-#{Date.today}.csv" }
+    end
+  end
+
+  def resolve
+    feedback = FeedbackDetail.find(params[:id])
+    feedback.update(status: 'resolved')
+    redirect_to dashboard_index_path, notice: "Ticket marked as resolved."
+  end
+
+  private
+  def authenticate_admin!
+    unless session[:admin_id] && Admin.exists?(session[:admin_id])
+      redirect_to admin_login_path, alert: "Please log in as admin to access the dashboard."
     end
   end
 end

@@ -112,7 +112,7 @@
                   <div class="d-flex justify-content-center gap-3">
                     <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">Cancel</button>
 
-                    <%= button_to "Resolve", resolve_feedback_detail_path(feedback), method: :patch,
+                    <%= button_to "Resolve", resolve_feedback_path(feedback), method: :patch,
                                   class: "btn btn-success px-4", form: { "data-turbo" => "false" } %>
                   </div>
                 </div>
