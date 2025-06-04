@@ -100,4 +100,15 @@ class SessionsController < ApplicationController
   rescue => e
     redirect_to verify_otp_path, alert: "#{e.message}"
   end
+
+  def destroy
+    begin
+      session[:auth_token] = nil
+      session[:phone_number] = nil
+      session[:otp] = nil
+      redirect_to login_path, notice: "You have been logged out successfully."
+    rescue => e
+      redirect_to login_path, alert: "Error: #{e.message}"
+    end
+  end
 end

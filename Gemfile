@@ -71,3 +71,6 @@ gem 'bootstrap-will_paginate', '~> 1.0'
 
 gem 'twilio-ruby'
 gem 'bcrypt', '~> 3.1.7'
+gem 'cloudinary'
+gem 'activestorage-cloudinary-service'
+gem 'dotenv-rails'

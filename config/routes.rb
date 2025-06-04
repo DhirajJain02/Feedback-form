@@ -29,6 +29,7 @@ Rails.application.routes.draw do
   get  '/verify_otp', to: 'sessions#verify_otp'
   post '/confirm_otp', to: 'sessions#confirm_otp'
   get '/resend_otp', to: 'sessions#resend_otp'
+  delete '/logout', to: 'sessions#destroy'
 
   # Dashboard routes
   get "admin/dashboard", to: "dashboard#index"
