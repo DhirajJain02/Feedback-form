@@ -259,9 +259,9 @@
             new Chart(categoryCtx, {
                 type: 'bar',
                 data: {
-                    labels: <%= raw @category_data.keys.map { |k| k.split.first }.to_json %>,
+                    labels: <%= raw @feedbacks_by_category.keys.map { |k| k.split.first }.to_json %>,
                     datasets: [{
-                        data: <%= raw @category_data.values.to_json %>,
+                        data: <%= raw @feedbacks_by_category.values.to_json %>,
                         backgroundColor: '#4f46e5',
                         barThickness: 15
                     }]
@@ -274,8 +274,8 @@
             });
 
             // Doughnut Chart
-            const urgencyDataValues = <%= raw @urgency_data.values.to_json %>;
-            const urgencyDataLabels = <%= raw @urgency_data.keys.map { |k| k.split.first }.to_json %>;
+            const urgencyDataValues = <%= raw @urgency_levels.values.to_json %>;
+            const urgencyDataLabels = <%= raw @urgency_levels.keys.map { |k| k.split.first }.to_json %>;
             const urgencyTotal = urgencyDataValues.reduce((a, b) => a + b, 0);
 
             new Chart(urgencyCtx, {

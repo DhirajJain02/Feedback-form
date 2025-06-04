@@ -79,12 +79,18 @@ class AdminsController < ApplicationController
   end
 
   def logout
-    begin
-      session[:admin_id] = nil
-      redirect_to admin_login_path, notice: "Logged out successfully"
-    rescue => e
-      flash[:alert] = "Something went wrong while logging out."
-      redirect_to admin_login_path, status: 500
+    respond_to do |format|
+      begin
+        session[:admin_id] = nil
+        format.html { redirect_to admin_login_path, notice: "Logged out successfully" }
+        format.json { render json: { message: "Logged out successfully" }, status: :ok }
+      rescue => e
+        format.html do
+          flash[:alert] = "Something went wrong while logging out."
+          redirect_to admin_login_path, status: 500
+        end
+        format.json { render json: { error: "Logout failed", details: e.message }, status: :internal_server_error }
+      end
     end
   end
 

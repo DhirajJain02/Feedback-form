@@ -11,7 +11,8 @@
     <%= form_with url: '/confirm_otp', method: :post, local: true do |f| %>
       <div class="d-flex justify-content-center gap-3">
         <% 6.times do |i| %>
-          <input name="otp_digit[]" maxlength="1" class="form-control text-center otp-input" style="width: 40px"/>
+          <input name="otp_digit[]" maxlength="1" class="form-control text-center otp-input" pattern="\d*"
+                 oninput="this.value = this.value.replace(/[^0-9]/g, '')" style="width: 40px"/>
         <% end %>
       </div>
       <!--      <p class="text-muted text-start mt-2 mx-3">Resend OTP in <span id="resend-timer">60</span>sec</p>-->
@@ -77,29 +78,6 @@
             combined.value = Array.from(inputs).map(i => i.value).join('');
         });
     });
-    // const inputs = document.querySelectorAll("input[name='otp_digit[]']");
-    // const combined = document.getElementById("combined_otp");
-    //
-    // inputs.forEach((input, index) => {
-    //     input.addEventListener("input", () => {
-    //         if (input.value.length === 1 && index < inputs.length - 1) {
-    //             inputs[index + 1].focus();
-    //         }
-    //
-    //         input.addEventListener("keydown", (e) => {
-    //             if (e.key === "Backspace" && input.value === "" && index > 0) {
-    //                 inputs[index - 1].focus();
-    //             }
-    //         });
-    //         combined.value = Array.from(inputs).map(i => i.value).join('');
-    //     });
-    //     let time = 60;
-    //     const timerEl = document.getElementById("resend-timer");
-    //     const countdown = setInterval(() => {
-    //         time--;
-    //         timerEl.innerText = time;
-    //         if (time <= 0) clearInterval(countdown);
-    //     }, 1000);
-    // });
+
 </script>
 

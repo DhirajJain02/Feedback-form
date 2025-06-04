@@ -25,16 +25,53 @@ class SessionsController < ApplicationController
       puts "DEBUG OTP: #{@user_session.otp}"
 
       # SendOtpService.new(@user_session.phone_number, @user_session.otp).call
-      redirect_to verify_otp_path, notice: "OTP sent to #{@user_session.phone_number}"
+      respond_to do |format|
+        format.html do
+          redirect_to verify_otp_path, notice: "OTP sent to #{@user_session.phone_number}"
+        end
+        format.json do
+          render json: {
+            message: "OTP sent successfully",
+            phone_number: @user_session.phone_number,
+            otp: @user_session.otp
+          }, status: :ok
+        end
+      end
+
     rescue => e
-      redirect_to login_path, alert: "Error: #{e.message}"
+      respond_to do |format|
+        format.html do
+          redirect_to login_path, alert: "Error: #{e.message}"
+        end
+        format.json do
+          render json: { error: e.message }, status: :unprocessable_entity
+        end
+      end
     end
   end
 
   def verify_otp
     @phone = session[:phone_number]
-    unless @phone
-      redirect_to login_path, alert: "Error: Invalid phone number"
+
+    respond_to do |format|
+      if @phone.present?
+        format.html do
+          # renders the verify_otp.html.erb view
+        end
+        format.json do
+          render json: {
+            message: "Phone number found in session",
+            phone_number: @phone
+          }, status: :ok
+        end
+      else
+        format.html do
+          redirect_to login_path, alert: "Error: Invalid phone number"
+        end
+        format.json do
+          render json: { error: "Invalid phone number." }, status: :unauthorized
+        end
+      end
     end
   end
 
@@ -85,30 +122,64 @@ class SessionsController < ApplicationController
   end
 
   def resend_otp
-    begin
-      phone = params[:phone]
-      session_record = UserSession.find_by(phone_number: phone)
+    phone = params[:phone]
+    session_record = UserSession.find_by(phone_number: phone)
 
+    respond_to do |format|
       if session_record
         session_record.otp = rand(100000..999999).to_s
         session_record.save
         session[:otp] = session_record.otp
         puts "Resent OTP to #{phone}: #{session_record.otp}"
+
+        format.html do
+          redirect_to verify_otp_path(phone: phone), notice: "OTP resent successfully!"
+        end
+        format.json do
+          render json: { message: "OTP resent successfully", phone_number: phone }, status: :ok
+        end
+      else
+        format.html do
+          redirect_to verify_otp_path, alert: "Phone number not found"
+        end
+        format.json do
+          render json: { error: "Phone number not found" }, status: :not_found
+        end
       end
-      redirect_to verify_otp_path(phone: phone), notice: "OTP resend successfully!"
+    rescue => e
+      format.html do
+        redirect_to verify_otp_path, alert: e.message
+      end
+      format.json do
+        render json: { error: e.message }, status: :unprocessable_entity
+      end
     end
-  rescue => e
-    redirect_to verify_otp_path, alert: "#{e.message}"
   end
 
   def destroy
-    begin
-      session[:auth_token] = nil
-      session[:phone_number] = nil
-      session[:otp] = nil
-      redirect_to login_path, notice: "You have been logged out successfully."
-    rescue => e
-      redirect_to login_path, alert: "Error: #{e.message}"
+    respond_to do |format|
+      begin
+        session[:auth_token] = nil
+        session[:phone_number] = nil
+        session[:otp] = nil
+
+        format.html do
+          redirect_to login_path, notice: "You have been logged out successfully."
+        end
+
+        format.json do
+          render json: { message: "Logged out successfully" }, status: :ok
+        end
+      rescue => e
+        format.html do
+          redirect_to login_path, alert: "Error: #{e.message}"
+        end
+
+        format.json do
+          render json: { error: e.message }, status: :unprocessable_entity
+        end
+      end
     end
   end
+
 end

@@ -4,8 +4,8 @@ class FeedbackDetail < ApplicationRecord
   belongs_to :session
   has_one_attached :image
   validates :category, :description, :location_address, :urgency, :name, :email, presence: true
-  validates :description, length: { maximum: 500 }
-  validates :location_address, length: { maximum: 50 }
+  validates :description, length: { maximum: 500, minimum: 5 }
+  validates :location_address, length: { maximum: 50, minimum: 5 }
   # validates :name, presence: true, format: { with: /\A[a-zA-Z\s]+\z/, message: "only allows letters and spaces" }
   # validates :name, format: { with: /\A[a-zA-Z\s]{50}\z/, message: "must be 2-50 characters, only letters and spaces" }
   validates :email, format: { with: URI::MailTo::EMAIL_REGEXP, message: "is not a valid email address" }
