@@ -27,23 +27,23 @@ class FeedbackDetailsController < ApplicationController
     end
   end
 
-  def import_csv
-    if params[:file].blank?
-      redirect_to feedback_details_path, alert: "Please upload a CSV file."
-      return
-    end
-
-    csv_file = params[:file]
-
-    begin
-      CSV.foreach(csv_file.path, headers: true) do |row|
-        FeedbackDetail.create!(row.to_hash)
-      end
-      redirect_to feedback_details_path, notice: "CSV imported successfully!"
-    rescue => e
-      redirect_to feedback_details_path, alert: "Failed to import CSV: #{e.message}"
-    end
-  end
+  # def import_csv
+  #   if params[:file].blank?
+  #     redirect_to feedback_details_path, alert: "Please upload a CSV file."
+  #     return
+  #   end
+  #
+  #   csv_file = params[:file]
+  #
+  #   begin
+  #     CSV.foreach(csv_file.path, headers: true) do |row|
+  #       FeedbackDetail.create!(row.to_hash)
+  #     end
+  #     redirect_to feedback_details_path, notice: "CSV imported successfully!"
+  #   rescue => e
+  #     redirect_to feedback_details_path, alert: "Failed to import CSV: #{e.message}"
+  #   end
+  # end
 
   def thank_you
   end

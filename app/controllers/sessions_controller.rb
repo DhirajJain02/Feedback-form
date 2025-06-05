@@ -14,7 +14,25 @@ class SessionsController < ApplicationController
       # end
       #
       # @user_session = UserSession.find_or_initialize_by(phone_number: formatted_number)
-      @user_session = Session.find_or_initialize_by(phone_number: params[:phone_number])
+      # @user_session = Session.find_or_initialize_by(phone_number: params[:phone_number])
+      # @user_session.otp = rand(100000..999999).to_s
+      # @user_session.verified = false
+      # @user_session.save!
+      #
+      # session[:otp] = @user_session.otp
+      # session[:phone_number] = @user_session.phone_number
+      #
+      # puts "DEBUG OTP: #{@user_session.otp}"
+
+      raw_number = params[:phone_number].to_s.strip
+
+      # Ensure it is a valid 10-digit number
+      unless raw_number.match?(/\A\d{10}\z/)
+        redirect_to login_path, alert: "Invalid phone number. Use 10-digit Indian format." and return
+      end
+
+      # Store only the 10-digit number in the database
+      @user_session = Session.find_or_initialize_by(phone_number: raw_number)
       @user_session.otp = rand(100000..999999).to_s
       @user_session.verified = false
       @user_session.save!
@@ -22,7 +40,13 @@ class SessionsController < ApplicationController
       session[:otp] = @user_session.otp
       session[:phone_number] = @user_session.phone_number
 
+      # Format with +91 for Twilio
+      formatted_number = "+91#{raw_number}"
+
       puts "DEBUG OTP: #{@user_session.otp}"
+
+      # Send OTP via Twilio
+      SendOtpService.new(formatted_number, @user_session.otp).send_otp
 
       # SendOtpService.new(@user_session.phone_number, @user_session.otp).call
       respond_to do |format|
@@ -123,7 +147,7 @@ class SessionsController < ApplicationController
 
   def resend_otp
     phone = params[:phone]
-    session_record = UserSession.find_by(phone_number: phone)
+    session_record = Session.find_by(phone_number: phone)
 
     respond_to do |format|
       if session_record

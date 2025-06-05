@@ -7,5 +7,4 @@ class Admin < ApplicationRecord
 
   validates :password, presence: { message: "Password is required." }, length: { minimum: 6, message: "must be at least 6 characters." }
   validates :password_confirmation, presence: { message: "Please confirm your password." }
-
 end
