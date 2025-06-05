@@ -104,21 +104,7 @@
         </thead>
         <tbody>
         <% @recent_feedbacks.each_with_index do |feedback, index| %>
-          <div class="modal fade" id="resolveModal-<%= feedback.id %>" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered">
-              <div class="modal-content" style="border-radius: 15px; background-color: rgba(255, 255, 255, 0.95);">
-                <div class="modal-body text-center p-5">
-                  <h5 class="fw-bold mb-4">Are you sure you want to resolve this ticket?</h5>
-                  <div class="d-flex justify-content-center gap-3">
-                    <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">Cancel</button>
 
-                    <%= button_to "Resolve", resolve_feedback_path(feedback), method: :patch,
-                                  class: "btn btn-success px-4", form: { "data-turbo" => "false" } %>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
           <tr class="text-center">
             <!--            <td><%#= index + 1 %></td>-->
             <td>
@@ -168,6 +154,23 @@
         <% end %>
         </tbody>
       </table>
+      <% @recent_feedbacks.each_with_index do |feedback, index| %>
+        <div class="modal fade" id="resolveModal-<%= feedback.id %>" tabindex="-1" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 15px; background-color: rgba(255, 255, 255, 0.95);">
+              <div class="modal-body text-center p-5">
+                <h5 class="fw-bold mb-4">Are you sure you want to resolve this ticket?</h5>
+                <div class="d-flex justify-content-center gap-3">
+                  <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">Cancel</button>
+
+                  <%= button_to "Resolve", resolve_feedback_path(feedback), method: :patch,
+                                class: "btn btn-success px-4", form: { "data-turbo" => "false" } %>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      <% end %>
       <% if @total_pages > 1 %>
         <nav aria-label="Feedback pagination">
           <ul class="pagination justify-content-center d-flex justify-content-between m-3">
