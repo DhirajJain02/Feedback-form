@@ -55,3 +55,7 @@ production:
   cable:
     <<: *default
     url: <%= ENV['DATABASE_URL'] %>
+
+  cache:
+    <<: *default
+    url: <%= ENV['DATABASE_URL'] %>
