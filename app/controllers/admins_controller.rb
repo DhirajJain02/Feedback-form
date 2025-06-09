@@ -6,34 +6,15 @@ class AdminsController < ApplicationController
   def create
     @admin = Admin.new(admin_params)
 
-    respond_to do |format|
-      if @admin.save
-        session[:admin_id] = @admin.id
-        format.html do
-          redirect_to admin_login_path, notice: "Admin created successfully. Please log in."
-        end
-        format.json do
-          render json: { message: "Admin created successfully", admin: @admin }, status: :created
-        end
-      else
-        format.html do
-          render :new, status: :unprocessable_entity
-        end
-        format.json do
-          render json: { errors: @admin.errors.full_messages }, status: :unprocessable_entity
-        end
-      end
+    if @admin.save
+      session[:admin_id] = @admin.id
+      redirect_to admin_login_path, notice: "Admin created successfully. Please log in."
+    else
+      render :new, status: :unprocessable_entity
     end
   rescue => e
-    respond_to do |format|
-      format.html do
-        flash.now[:alert] = "Something went wrong. Please try again."
-        render :new, status: 500
-      end
-      format.json do
-        render json: { error: "Internal Server Error", details: e.message }, status: 500
-      end
-    end
+    flash.now[:alert] = "Something went wrong. Please try again."
+    render :new, status: 500
   end
 
   def login
@@ -44,54 +25,26 @@ class AdminsController < ApplicationController
   end
 
   def login_create
-    respond_to do |format|
-      begin
-        admin = Admin.find_by(email: params[:email])
+    admin = Admin.find_by(email: params[:email])
 
-        if admin&.authenticate(params[:password])
-          session[:admin_id] = admin.id
-
-          format.html do
-            redirect_to dashboard_index_path, notice: "Logged in successfully"
-          end
-          format.json do
-            render json: { message: "Logged in successfully", admin_id: admin.id }, status: :ok
-          end
-        else
-          format.html do
-            flash.now[:alert] = "Invalid email or password"
-            render :login, status: :unauthorized
-          end
-          format.json do
-            render json: { error: "Invalid email or password" }, status: :unauthorized
-          end
-        end
-      rescue => e
-        format.html do
-          flash.now[:alert] = "Something went wrong. Please try again."
-          render :login, status: 500
-        end
-        format.json do
-          render json: { error: "Internal Server Error", details: e.message }, status: 500
-        end
-      end
+    if admin&.authenticate(params[:password])
+      session[:admin_id] = admin.id
+      redirect_to dashboard_index_path, notice: "Logged in successfully"
+    else
+      flash.now[:alert] = "Invalid email or password"
+      render :login, status: :unauthorized
     end
+  rescue => e
+    flash.now[:alert] = "Something went wrong. Please try again."
+    render :login, status: 500
   end
 
   def logout
-    respond_to do |format|
-      begin
-        session[:admin_id] = nil
-        format.html { redirect_to admin_login_path, notice: "Logged out successfully" }
-        format.json { render json: { message: "Logged out successfully" }, status: :ok }
-      rescue => e
-        format.html do
-          flash[:alert] = "Something went wrong while logging out."
-          redirect_to admin_login_path, status: 500
-        end
-        format.json { render json: { error: "Logout failed", details: e.message }, status: :internal_server_error }
-      end
-    end
+    session[:admin_id] = nil
+    redirect_to admin_login_path, notice: "Logged out successfully"
+  rescue => e
+    flash[:alert] = "Something went wrong while logging out."
+    redirect_to admin_login_path, status: 500
   end
 
   private

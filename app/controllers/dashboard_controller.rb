@@ -1,6 +1,6 @@
 class DashboardController < ApplicationController
   PER_PAGE = 10
-  before_action :authenticate_admin!
+  before_action :authenticate_admin!, except: [:resolve]
 
   def index
 
@@ -12,11 +12,6 @@ class DashboardController < ApplicationController
 
     @feedbacks_by_category = FeedbackDetail.group(:category).count
     @urgency_levels = FeedbackDetail.group(:urgency).count
-    # @recent_feedbacks = FeedbackDetail
-    #                       .order(created_at: :desc)
-    #                       .paginate(page: params[:page], per_page: PER_PAGE)
-    # @recent_feedbacks = FeedbackDetail.order(created_at: :desc).limit(10)
-    # @recent_feedbacks = FeedbackDetail.order(created_at: :desc).page(params[:page]).per(10)
 
     page_number = params[:page].to_i
     page_number = 1 if page_number < 1
@@ -36,26 +31,6 @@ class DashboardController < ApplicationController
 
     # Expose the current page to the view:
     @current_page = page_number
-
-    respond_to do |format|
-      format.html # Renders default HTML view
-
-      format.json do
-        render json: {
-          stats: {
-            total_submissions: @total_submissions,
-            new_today: @new_today,
-            pending_issues: @pending_issues,
-            resolved_issues: @resolved_issues,
-            high_priority_pending: @high_priority_pending
-          },
-          recent_feedbacks: @recent_feedbacks.as_json(
-            only: [:id, :name, :email, :category, :urgency, :status, :created_at]
-          )
-        }
-      end
-    end
-
   end
 
   def export_csv
@@ -69,26 +44,16 @@ class DashboardController < ApplicationController
     feedback = FeedbackDetail.find_by(id: params[:id])
 
     if feedback.nil?
-      respond_to do |format|
-        format.html { redirect_to dashboard_index_path, alert: "Feedback not found." }
-        format.json { render json: { error: "Feedback not found" }, status: :not_found }
-      end
+      redirect_to dashboard_index_path, alert: "Feedback not found."
       return
     end
 
     if feedback.update(status: 'resolved')
-      respond_to do |format|
-        format.html { redirect_to dashboard_index_path, notice: "Ticket marked as resolved." }
-        format.json { render json: { message: "Ticket marked as resolved", feedback: feedback }, status: :ok }
-      end
+      redirect_to dashboard_index_path, notice: "Ticket marked as resolved."
     else
-      respond_to do |format|
-        format.html { redirect_to dashboard_index_path, alert: "Could not mark as resolved." }
-        format.json { render json: { error: "Update failed", details: feedback.errors.full_messages }, status: :unprocessable_entity }
-      end
+      redirect_to dashboard_index_path, alert: "Could not mark as resolved."
     end
   end
-
 
   private
 
