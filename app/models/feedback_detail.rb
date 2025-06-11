@@ -1,13 +1,15 @@
 require "csv"
 
 class FeedbackDetail < ApplicationRecord
+  EMAIL_REGEX = /\A[^@\s]+@[^@\s]+\.[^@\s]+\z/.freeze
   belongs_to :session
   has_one_attached :image
   validates :category, :description, :location_address, :urgency, :name, :email, presence: true
-  validates :description, length: { maximum: 500, minimum: 5 }
+  validates :description, length: { maximum: 500, minimum: 5 }, format: { without: /\A\d+\z/, message: "should contain words, not just numbers" }
+  validate :description_custom_rules
   validates :location_address, length: { maximum: 50, minimum: 5 }
   validates :name, presence: true, format: { with: /\A[a-zA-Z\s]+\z/, message: "only allows letters and spaces" }, length: { minimum: 3, maximum: 30 }
-  validates :email, format: { with: URI::MailTo::EMAIL_REGEXP, message: "is not a valid email address" }
+  validates :email, format: { with: EMAIL_REGEX, message: "is not a valid email address" }
   validate :acceptable_image
 
   CATEGORIES = ['Infrastructure (e.g. Roads, lighting)', 'Environment (e.g, Waste, greenery)', 'Event Suggestion',
@@ -41,6 +43,18 @@ class FeedbackDetail < ApplicationRecord
     acceptable_types = ["image/jpeg", "image/png", "image/jpg"]
     unless acceptable_types.include?(image.blob.content_type)
       errors.add(:image, "must be a JPEG, JPG, or PNG")
+    end
+  end
+
+  def description_custom_rules
+    return if description.blank?
+
+    # Strip leading/trailing whitespaces
+    description.strip!
+
+    # Reject repetitive characters (e.g., "aaaaaa")
+    if description.squeeze.length <= 3
+      errors.add(:description, "letters is too repetitive or invalid")
     end
   end
 end
