@@ -11,6 +11,7 @@ class FeedbackDetail < ApplicationRecord
   validates :name, presence: true, format: { with: /\A[a-zA-Z\s]+\z/, message: "only allows letters and spaces" }, length: { minimum: 3, maximum: 30 }
   validates :email, format: { with: EMAIL_REGEX, message: "is not a valid email address" }
   validate :acceptable_image
+  before_validation :trim_description
 
   CATEGORIES = ['Infrastructure (e.g. Roads, lighting)', 'Environment (e.g, Waste, greenery)', 'Event Suggestion',
                 'General Suggestion/ Suggestion', 'Security Concern', 'Other'].freeze
@@ -46,12 +47,12 @@ class FeedbackDetail < ApplicationRecord
     end
   end
 
+  def trim_description
+    self.description = description&.squish unless description.blank?
+  end
+
   def description_custom_rules
     return if description.blank?
-
-    # Strip leading/trailing whitespaces
-    description.strip!
-
     # Reject repetitive characters (e.g., "aaaaaa")
     if description.squeeze.length <= 3
       errors.add(:description, "letters is too repetitive or invalid")
