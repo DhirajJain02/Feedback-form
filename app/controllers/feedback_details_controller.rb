@@ -14,7 +14,7 @@ class FeedbackDetailsController < ApplicationController
       render :new, status: :unprocessable_entity
     end
     rescue => e
-      redirect_to login_path, alert: "Error: #{e.message}"
+      redirect_to feedback_details_path, alert: "Error: #{e.message}"
     end
   end
 
