@@ -5,12 +5,16 @@ class FeedbackDetailsController < ApplicationController
   end
 
   def create
+    begin
     @feedback_detail = current_user_session.feedback_details.new(feedback_detail_params)
 
     if @feedback_detail.save
       redirect_to thank_you_path
     else
       render :new, status: :unprocessable_entity
+    end
+    rescue => e
+      redirect_to login_path, alert: "Error: #{e.message}"
     end
   end
 
