@@ -46,6 +46,8 @@ class SessionsController < ApplicationController
     else
       redirect_to login_path, alert: "Error: Invalid phone number"
     end
+  rescue => e
+    redirect_to login_path, alert: "Error: #{e.message}"
   end
 
   def confirm_otp

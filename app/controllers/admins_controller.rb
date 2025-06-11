@@ -13,15 +13,15 @@ class AdminsController < ApplicationController
       render :new, status: :unprocessable_entity
     end
   rescue => e
-    flash.now[:alert] = "Something went wrong. Please try again."
+    flash.now[:alert] = "Something went wrong. Please try again. #{e.message}"
     render :new, status: 500
   end
 
   def login
     # just renders login form
   rescue => e
-    flash.now[:alert] = "Something went wrong. Please try again."
-    render plain: "Error: #{e.message}", status: 500
+    flash.now[:alert] = "Something went wrong. Please try again. #{e.message}"
+    render login, status: 500
   end
 
   def login_create
@@ -35,7 +35,7 @@ class AdminsController < ApplicationController
       render :login, status: :unauthorized
     end
   rescue => e
-    flash.now[:alert] = "Something went wrong. Please try again."
+    flash.now[:alert] = "Something went wrong. Please try again. #{e.message}"
     render :login, status: 500
   end
 
@@ -43,7 +43,7 @@ class AdminsController < ApplicationController
     session[:admin_id] = nil
     redirect_to admin_login_path, notice: "Logged out successfully"
   rescue => e
-    flash[:alert] = "Something went wrong while logging out."
+    flash[:alert] = "Something went wrong while logging out. #{e.message}"
     redirect_to admin_login_path, status: 500
   end
 
